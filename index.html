@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Game Vault — Pick Your Game</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;min-height:100%;background:#0b0e1a;
+    font-family:'Trebuchet MS','Segoe UI',system-ui,sans-serif;color:#eef1ff}
+
+  body{display:flex;flex-direction:column;align-items:center;justify-content:center;
+    min-height:100vh;padding:40px 20px;
+    background:radial-gradient(1200px 600px at 50% -10%,#1c2350 0%,#0b0e1a 60%)}
+
+  header{text-align:center;margin-bottom:44px}
+  header h1{margin:0;font-size:46px;letter-spacing:8px;color:#ffd23e;
+    text-shadow:0 3px 0 #7a4f00,0 6px 24px rgba(0,0,0,.6)}
+  header p{margin:10px 0 0;font-size:16px;color:#9aa4d8;letter-spacing:2px}
+
+  .cards{display:flex;gap:28px;flex-wrap:wrap;justify-content:center;max-width:900px}
+
+  .card{position:relative;width:380px;max-width:92vw;border-radius:16px;padding:28px 26px 24px;
+    background:linear-gradient(180deg,#232a52,#161a38);
+    border:3px solid #4b5584;cursor:pointer;text-align:left;
+    transition:transform .15s,box-shadow .15s,border-color .15s;
+    text-decoration:none;display:block;color:inherit}
+  .card:hover,.card:focus-visible{transform:translateY(-6px);outline:none}
+  .card:focus-visible{border-color:#ffd23e}
+
+  .card .badge{position:absolute;top:-14px;right:18px;font-size:11px;font-weight:800;
+    letter-spacing:2px;padding:5px 12px;border-radius:20px;background:#3b4780;
+    border:2px solid #6a76b8;color:#cfd6f7}
+  .card h2{margin:0 0 4px;font-size:30px;letter-spacing:3px}
+  .card .sub{font-size:13px;font-weight:700;letter-spacing:2px;margin-bottom:14px}
+  .card p{margin:0 0 18px;font-size:14px;line-height:1.6;color:#cfd5f5}
+  .card .tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+  .card .tag{font-size:11px;font-weight:700;padding:4px 10px;border-radius:12px;
+    background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);color:#9aa4d8}
+  .card .play{display:inline-block;font-size:15px;font-weight:800;letter-spacing:1px;
+    padding:10px 20px;border-radius:10px;border:2px solid;transition:background .12s}
+
+  /* Pixel Peaks — sunny platformer */
+  .pp{border-color:#4b5584}
+  .pp:hover,.pp:focus-visible{box-shadow:0 16px 40px rgba(255,210,62,.18);border-color:#ffd23e}
+  .pp h2{color:#ffd23e;text-shadow:0 3px 0 #7a4f00}
+  .pp .sub{color:#7ef29a}
+  .pp .play{background:#e8b23e;border-color:#ffd98a;color:#3a2500}
+  .pp .play:hover{background:#f5c75e}
+
+  /* Emberfall — dark ashen descent */
+  .ef{border-color:#6b4451}
+  .ef:hover,.ef:focus-visible{box-shadow:0 16px 40px rgba(255,90,40,.18);border-color:#ff6a3d}
+  .ef h2{color:#ff8a5c;text-shadow:0 3px 0 #5a1c00}
+  .ef .sub{color:#ffb199}
+  .ef .play{background:#c8401e;border-color:#ff8a5c;color:#fff2ec}
+  .ef .play:hover{background:#e05430}
+
+  .hint{margin-top:40px;font-size:13px;color:#5f6a9e;letter-spacing:1px;text-align:center}
+  .hint b{color:#9aa4d8}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>GAME VAULT</h1>
+  <p>TWO ADVENTURES · PICK ONE TO PLAY</p>
+</header>
+
+<div class="cards">
+  <a class="card pp" href="pixel-peaks/index.html" data-key="1">
+    <span class="badge">[1]</span>
+    <h2>PIXEL PEAKS</h2>
+    <div class="sub">A TINY PLATFORMER</div>
+    <p>Run, jump and sprint across hand-built levels. Grab coins, stock up on weapons,
+       dodge pits and enemies, and reach the summit.</p>
+    <div class="tags">
+      <span class="tag">Platformer</span>
+      <span class="tag">Hearts &amp; Coins</span>
+      <span class="tag">Shops</span>
+      <span class="tag">Multiple Levels</span>
+    </div>
+    <span class="play">▶ PLAY</span>
+  </a>
+
+  <a class="card ef" href="emberfall/index.html" data-key="2">
+    <span class="badge">[2]</span>
+    <h2>EMBERFALL</h2>
+    <div class="sub">A DESCENT OF THE ASHEN BLADE</div>
+    <p>Descend into the ash with your blade. Battle through a dark, atmospheric
+       adventure where every fall brings the embers closer.</p>
+    <div class="tags">
+      <span class="tag">Action</span>
+      <span class="tag">Dark Fantasy</span>
+      <span class="tag">Blade Combat</span>
+      <span class="tag">Descent</span>
+    </div>
+    <span class="play">▶ PLAY</span>
+  </a>
+</div>
+
+<div class="hint">TIP: PRESS <b>1</b> OR <b>2</b> TO LAUNCH A GAME</div>
+
+<script>
+(function(){
+  var links={};
+  document.querySelectorAll('.card').forEach(function(c){links[c.dataset.key]=c;});
+  var selected='1';
+  function paint(){
+    for(var k in links){links[k].style.borderColor='';}
+    links[selected].style.borderColor='#ffd23e';
+  }
+  paint();
+  document.addEventListener('keydown',function(e){
+    if(e.key==='1'||e.key==='2'){selected=e.key;paint();}
+    else if(e.key==='Enter'){links[selected].click();}
+  });
+})();
+</script>
+
+</body>
+</html>

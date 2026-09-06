@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Pixel Peaks — a tiny platformer</title>
+<style>
+  html,body{margin:0;padding:0;background:#0b0e1a;height:100%;overflow:hidden;
+    font-family:'Trebuchet MS','Segoe UI',system-ui,sans-serif}
+  #wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+  canvas{image-rendering:pixelated;image-rendering:crisp-edges;background:#000}
+
+  .hidden{display:none!important}
+  #hud{position:fixed;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;
+    pointer-events:none;z-index:5;font-weight:700;user-select:none;-webkit-user-select:none}
+  .pill{background:linear-gradient(180deg,rgba(16,20,40,.78),rgba(10,14,30,.66));
+    border:2px solid rgba(255,255,255,.16);border-radius:12px;
+    backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
+    box-shadow:0 4px 16px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.08);
+    padding:6px 14px;display:flex;gap:14px;align-items:center;font-size:17px;color:#fff;
+    text-shadow:0 1px 2px rgba(0,0,0,.6)}
+  #hudHearts{color:#ff4d5e;letter-spacing:2px;font-size:19px;display:inline-flex;gap:2px}
+  #hudHearts .ht{display:inline-block;transition:transform .12s;
+    filter:drop-shadow(0 0 3px rgba(255,77,94,.55))}
+  #hudHearts .ht.off{color:#5a6280;filter:none;text-shadow:none}
+  @keyframes heartBump{0%{transform:scale(1)}35%{transform:scale(1.35)}100%{transform:scale(1)}}
+  @keyframes heartJolt{0%,100%{transform:translateX(0)}20%{transform:translateX(-3px)}
+    40%{transform:translateX(3px)}60%{transform:translateX(-2px)}80%{transform:translateX(2px)}}
+  #hudHearts.bump{animation:heartBump .3s ease-out}
+  #hudHearts.jolt{animation:heartJolt .35s ease-out}
+  #hudCoins{color:#ffd23e;display:inline-block}
+  #hudCoins.bump{animation:heartBump .25s ease-out}
+  #hudWeps{color:#9fe8ff;gap:8px;font-size:15px}
+  #hudLevel{font-size:16px;display:flex;align-items:center;gap:8px}
+  .dots{display:inline-flex;gap:4px}
+  .dots i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.22)}
+  .dots i.done{background:#7ef29a}
+  .dots i.cur{background:#ffd23e;box-shadow:0 0 5px #ffd23e}
+  #hudName{font-size:12px;color:#9aa4d8}
+
+  #banner{position:fixed;top:26%;left:0;right:0;text-align:center;pointer-events:none;z-index:6;
+    font-size:34px;font-weight:800;color:#fff;letter-spacing:2px;
+    text-shadow:0 3px 0 rgba(0,0,0,.5),0 6px 24px rgba(0,0,0,.6)}
+  @keyframes bannerIn{from{opacity:0;transform:translateY(-16px) scale(.96)}
+    to{opacity:1;transform:none}}
+  #banner{animation:bannerIn .45s cubic-bezier(.2,.9,.3,1.2) both}
+  #minitext{position:fixed;left:0;right:0;top:62%;text-align:center;pointer-events:none;z-index:6;
+    font-size:22px;font-weight:800;color:#9fe8ff;text-shadow:0 2px 4px rgba(0,0,0,.85)}
+  @keyframes miniIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  #minitext{animation:miniIn .25s ease-out both}
+
+  #screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:10;
+    background:rgba(7,9,22,.55);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+  @keyframes panelIn{from{opacity:0;transform:translateY(14px) scale(.96)}
+    to{opacity:1;transform:none}}
+  #panel{background:linear-gradient(180deg,#232a52,#161a38);border:3px solid #4b5584;border-radius:16px;
+    padding:24px 30px;text-align:center;color:#eef1ff;max-width:680px;width:calc(100vw - 48px);
+    max-height:calc(100vh - 40px);overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.7);
+    animation:panelIn .28s cubic-bezier(.2,.9,.3,1.15) both}
+  #panel h1{margin:0 0 6px;font-size:38px;letter-spacing:3px;color:#ffd23e;text-shadow:0 3px 0 #7a4f00}
+  #panel h2{margin:0 0 12px;font-size:20px;color:#9fd8ff;font-weight:700}
+  #panel p{margin:6px 0;font-size:15px;color:#cfd5f5;line-height:1.55}
+  #panel .keys{color:#7ef29a;font-weight:700;font-size:16px}
+  .srow{display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap}
+  .sbtn{font:700 16px 'Trebuchet MS',system-ui,sans-serif;color:#fff;cursor:pointer;
+    background:#3b4780;border:2px solid #6a76b8;border-radius:10px;padding:10px 18px;
+    transition:background .12s,transform .12s,box-shadow .12s}
+  .sbtn:hover{background:#4d5b9c;transform:translateY(-1px)}
+  .sbtn:active{transform:translateY(1px)}
+  .sbtn:focus-visible{outline:2px solid #ffd23e;outline-offset:2px}
+  .sbtn.primary{background:#e8b23e;border-color:#ffd98a;color:#3a2500}
+  .sbtn.primary:hover{background:#f5c75e;box-shadow:0 4px 14px rgba(232,178,62,.35)}
+
+  .wgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+  .wcell{background:#2a3055;border:2px solid #4b5584;border-radius:8px;padding:8px 4px;cursor:pointer;
+    font-size:13px;font-weight:700;color:#cfd6f7}
+  .wcell.sel{border-color:#ffd23e;background:#3a3f6e;box-shadow:0 0 0 2px rgba(255,210,62,.35)}
+  .wcell b{display:block;font-size:15px;color:#fff;margin-bottom:2px}
+  .wcell .wdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin:0 1px;cursor:pointer;background:#7a86bc}
+  .wcell .wdot.on{background:#ffd23e;box-shadow:0 0 4px #ffd23e}
+  .wcell .wtitle{font-size:11px;color:#9aa4d8}
+
+  .sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+  .scell{background:#2a3055;border:2px solid #4b5584;border-radius:10px;padding:10px 6px;cursor:pointer}
+  .scell.owned{border-color:#57d977}
+  .scell.equip{border-color:#ffd23e;box-shadow:0 0 0 2px rgba(255,210,62,.4)}
+  .swatch{height:34px;border-radius:6px;border:2px solid rgba(255,255,255,.25);margin-bottom:6px}
+  .scell b{font-size:14px;color:#fff}
+  .scell .price{font-size:12px;color:#ffd23e;font-weight:700;margin-top:4px}
+  .scell .tag{font-size:11px;color:#9aa4d8;display:block;margin-top:2px}
+
+  #touch{position:fixed;left:0;right:0;bottom:0;display:none;justify-content:space-between;
+    padding:10px 16px 16px;pointer-events:none;z-index:8}
+  #touch .grp{display:flex;gap:12px;align-items:flex-end}
+  #touch .btn{pointer-events:auto;width:62px;height:62px;border-radius:50%;
+    background:rgba(255,255,255,.13);border:2px solid rgba(255,255,255,.4);color:#fff;
+    font:700 22px 'Trebuchet MS',system-ui,sans-serif;display:flex;align-items:center;justify-content:center;
+    user-select:none;-webkit-user-select:none;touch-action:none}
+  #touch .btn.sm{width:48px;height:48px;font-size:16px}
+  #touch .btn.on{background:rgba(255,255,255,.34)}
+  #touch .btn.sprint{border-radius:10px;font-size:12px;width:52px;height:34px}
+  #touch .btn.weap{background:rgba(10,14,30,.55)}
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="game" width="480" height="270"></canvas></div>
+
+<div id="hud" class="hidden">
+  <div class="pill">
+    <span id="hudHearts"></span>
+    <span id="hudCoins"></span>
+    <span id="hudWeps"></span>
+  </div>
+  <div class="pill" style="flex-direction:column;gap:2px;align-items:flex-end">
+    <span id="hudLevel"></span>
+    <span id="hudName"></span>
+  </div>
+</div>
+<div id="banner" class="hidden"></div>
+<div id="minitext" class="hidden"></div>
+<div id="screen" class="hidden"></div>
+
+<div id="touch">
+  <div class="grp">
+    <div class="btn" data-k="left">◀</div>
+    <div class="btn" data-k="right">▶</div>
+    <div class="btn sprint" data-k="sprint">RUN</div>
+  </div>
+  <div class="grp">
+    <div class="btn weap sm" data-k="sword" style="display:none">⚔</div>
+    <div class="btn weap sm" data-k="bow" style="display:none">➶</div>
+    <div class="btn" data-k="jump">A</div>
+  </div>
+</div>
+
+<script src="js/audio.js"></script>
+<script src="js/levels.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
